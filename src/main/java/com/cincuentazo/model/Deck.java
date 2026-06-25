@@ -13,7 +13,7 @@ import java.util.Queue;
  * Deck with draw and recycle operations.
  */
 public final class Deck {
-    // FIFO queue storage for the deck.
+    // Estructura FIFO para almacenar el mazo.
     private final Queue<Card> cards = new ArrayDeque<>();
     private final SecureRandom random = new SecureRandom();
 

@@ -29,21 +29,21 @@ import java.util.concurrent.TimeUnit;
  * Core game service with turn loop and machine delays.
  */
 public class GameService {
-    // UI/controller listeners interested in game state and messages.
+    // Listeners de UI/controlador interesados en estado y mensajes.
     private final List<GameEventListener> listeners = new CopyOnWriteArrayList<>();
-    // Single-thread loop that executes turn order sequentially.
+    // Loop de un solo hilo que ejecuta turnos en orden.
     private final ExecutorService turnExecutor = Executors.newSingleThreadExecutor();
-    // Scheduler used for machine delays (thinking/draw timing).
+    // Scheduler usado para demoras de maquina (pensar/tomar).
     private final ScheduledExecutorService machineScheduler = Executors.newSingleThreadScheduledExecutor();
-    // Random source for delays and shuffling decisions.
+    // Fuente aleatoria para demoras y decisiones de mezcla.
     private final SecureRandom random = new SecureRandom();
 
-    // Lock used to coordinate human move submission from UI thread.
+    // Lock para coordinar envio de jugadas humanas desde UI.
     private final Object moveLock = new Object();
 
     private List<Player> players = new ArrayList<>();
     private Deck deck;
-    // LIFO structure for table pile (last played card on top).
+    // Estructura LIFO para pila de mesa (ultima carta arriba).
     private final Stack<Card> tablePile = new Stack<>();
     private final List<String> history = new ArrayList<>();
 
@@ -51,7 +51,7 @@ public class GameService {
     private int currentPlayerIndex;
     private boolean running;
     private boolean waitingHumanDraw;
-    // Holds the move chosen by human until turn loop consumes it.
+    // Guarda la jugada humana hasta que el loop de turnos la procese.
     private Move pendingHumanMove;
     private boolean pendingHumanDraw;
 
@@ -80,12 +80,12 @@ public class GameService {
      * @throws GameInitializationException when machineCount is out of range
      */
     public synchronized void startNewGame(int machineCount) throws GameInitializationException {
-        // Validates setup range required by user story (1..3 machines).
+        // Valida rango requerido por la historia de usuario (1..3).
         if (machineCount < 1 || machineCount > 3) {
             throw new GameInitializationException("Los jugadores maquina deben estar entre 1 y 3");
         }
 
-        // Stops any waiting human turn from a previous game instance.
+        // Detiene cualquier espera de turno humano de una partida previa.
         running = false;
         synchronized (moveLock) {
             pendingHumanMove = null;
@@ -93,33 +93,33 @@ public class GameService {
             moveLock.notifyAll();
         }
 
-        // Rebuilds game state for a clean session.
+        // Reconstruye el estado para una sesion limpia.
         deck = new Deck();
         players = new ArrayList<>();
         tablePile.clear();
         history.clear();
 
-        // Human always goes first in this implementation.
+        // El humano siempre inicia en esta implementacion.
         players.add(new HumanPlayer("Humano"));
         for (int i = 1; i <= machineCount; i++) {
             players.add(new MachinePlayer("Maquina " + i));
         }
 
-        // Deals 4 cards per player at game start.
+        // Reparte 4 cartas por jugador al iniciar.
         dealInitialCards(players);
 
-        // Places first table card and initializes table sum.
+        // Coloca la primera carta en mesa e inicializa la suma.
         Card initialTableCard = deck.draw();
         tablePile.push(initialTableCard);
         tableSum = initialTableCard.getGameValue();
         history.add("Carta inicial en mesa: " + initialTableCard + " (suma=" + tableSum + ")");
 
-        // Starts with player index 0 (human).
+        // Comienza en el indice 0 (humano).
         currentPlayerIndex = 0;
         running = true;
         waitingHumanDraw = false;
 
-        // Sends first state to UI and starts asynchronous turn loop.
+        // Envia primer estado a UI e inicia loop de turnos asincrono.
         emitState();
         emitMessage("Juego iniciado. Comienza el humano.");
         turnExecutor.submit(this::runGameLoop);
@@ -127,11 +127,11 @@ public class GameService {
 
     public void submitHumanMove(int cardIndex, Operation operation) throws InvalidMoveException {
         synchronized (moveLock) {
-            // Rejects actions if game already ended.
+            // Rechaza acciones si la partida ya termino.
             if (!running) {
                 throw new InvalidMoveException("El juego no esta en ejecucion");
             }
-            // Human can only play during own turn.
+            // El humano solo puede jugar en su propio turno.
             Player current = players.get(currentPlayerIndex);
             if (!current.isHuman()) {
                 throw new InvalidMoveException("No es tu turno");
@@ -139,20 +139,20 @@ public class GameService {
             if (waitingHumanDraw) {
                 throw new InvalidMoveException("Primero debes tomar una carta para terminar el turno");
             }
-            // Guards against out-of-range card selection.
+            // Protege contra seleccion de carta fuera de rango.
             if (cardIndex < 0 || cardIndex >= current.getHand().size()) {
                 throw new InvalidMoveException("Indice de carta invalido");
             }
 
-            // Builds candidate move using selected card and operation.
+            // Construye jugada candidata con carta y operacion.
             Card card = current.getHand().get(cardIndex);
             Move move = new Move(card, operation);
-            // Enforces main rule: table sum must not exceed 50.
+            // Aplica regla principal: la suma de mesa no supera 50.
             if (!GameRules.isMoveValid(move, tableSum)) {
                 throw new InvalidMoveException("Esta jugada excede 50 en la suma de la mesa");
             }
 
-            // Publishes move for turn loop and wakes waiting thread.
+            // Publica jugada para el loop y despierta el hilo en espera.
             pendingHumanMove = move;
             moveLock.notifyAll();
         }
@@ -202,30 +202,30 @@ public class GameService {
      * Stops game loop and shuts down executors.
      */
     public synchronized void stop() {
-        // Marks game stopped and unblocks any waiting human-turn wait().
+        // Marca juego detenido y desbloquea cualquier wait() pendiente.
         running = false;
         synchronized (moveLock) {
             pendingHumanMove = null;
             pendingHumanDraw = false;
             moveLock.notifyAll();
         }
-        // Requests shutdown of executors used by game loop and scheduler.
+        // Solicita apagado de executors del loop y scheduler.
         turnExecutor.shutdownNow();
         machineScheduler.shutdownNow();
     }
 
     private void runGameLoop() {
         try {
-            // Repeats until only one active player remains.
+            // Repite hasta que quede un solo jugador activo.
             while (isGameActive()) {
                 Player player = players.get(currentPlayerIndex);
-                // Skips players already eliminated.
+                // Omite jugadores ya eliminados.
                 if (!player.isActive()) {
                     advanceTurn();
                     continue;
                 }
 
-                // Eliminates player if no valid move exists.
+                // Elimina jugador si no tiene jugadas validas.
                 if (!GameRules.hasAnyValidMove(player.getHand(), tableSum)) {
                     eliminatePlayer(player);
                     if (!isGameActive()) {
@@ -236,19 +236,19 @@ public class GameService {
                 }
 
                 if (player.isHuman()) {
-                    // Human waits for UI-submitted move.
+                    // El humano espera una jugada enviada desde UI.
                     handleHumanTurn(player);
                 } else {
-                    // Machine auto-selects a move with delay.
+                    // La maquina selecciona jugada automaticamente con demora.
                     handleMachineTurn(player);
                 }
 
-                // Sends refreshed state and rotates turn.
+                // Envia estado actualizado y rota turno.
                 emitState();
                 advanceTurn();
             }
 
-            // Resolves winner when loop exits.
+            // Resuelve ganador cuando finaliza el loop.
             Player winner = players.stream().filter(Player::isActive).findFirst().orElse(null);
             if (winner != null) {
                 emitMessage("Ganador: " + winner.getName());
@@ -259,7 +259,7 @@ public class GameService {
             }
             running = false;
         } catch (Exception ex) {
-            // Reports unexpected runtime errors to UI listeners.
+            // Reporta errores inesperados a listeners de UI.
             running = false;
             listeners.forEach(listener -> listener.onError("Error inesperado en el bucle del juego", ex));
         }
@@ -269,13 +269,13 @@ public class GameService {
         if (!running) {
             return false;
         }
-        // Game continues while more than one player is active.
+        // El juego continua mientras haya mas de un jugador activo.
         long alive = players.stream().filter(Player::isActive).count();
         return alive > 1;
     }
 
     private void dealInitialCards(List<Player> allPlayers) {
-        // Round-robin dealing: 4 cards per player.
+        // Reparto round-robin: 4 cartas por jugador.
         for (int i = 0; i < 4; i++) {
             for (Player player : allPlayers) {
                 player.addCard(deck.draw());
@@ -288,24 +288,24 @@ public class GameService {
         Move move;
 
         synchronized (moveLock) {
-            // Waits until UI thread submits a legal move.
+            // Espera hasta que UI envie una jugada legal.
             while (running && pendingHumanMove == null) {
                 moveLock.wait();
             }
             if (!running) {
                 return;
             }
-            // Consumes pending move and clears buffer.
+            // Consume la jugada pendiente y limpia el buffer.
             move = pendingHumanMove;
             pendingHumanMove = null;
         }
 
-        // Fails if hand changed and card no longer exists.
+        // Falla si la mano cambio y la carta ya no existe.
         if (!human.removeCard(move.card())) {
             throw new InvalidMoveException("La carta seleccionada ya no esta disponible");
         }
 
-        // Applies move and draws replacement card immediately.
+        // Aplica jugada y luego exige tomar carta para cerrar turno.
         applyMove(human, move);
         waitingHumanDraw = true;
         emitState();
@@ -327,26 +327,26 @@ public class GameService {
 
     private void handleMachineTurn(Player machine) throws Exception {
         emitMessage(machine.getName() + " esta pensando...");
-        // Machine waits 2..4 seconds before deciding.
+        // La maquina espera 2..4 segundos antes de decidir.
         int thinkDelay = random.nextInt(3) + 2;
 
-        // Picks move asynchronously after delay.
+        // Elige jugada de forma asincrona tras la demora.
         Move selectedMove = waitForMachineMove(machine, thinkDelay);
         machine.removeCard(selectedMove.card());
         applyMove(machine, selectedMove);
 
-        // Machine waits 1..2 seconds before drawing.
+        // La maquina espera 1..2 segundos antes de tomar carta.
         int drawDelay = random.nextInt(2) + 1;
         drawCardWithDelay(machine, drawDelay, drawDelay);
     }
 
     private Move waitForMachineMove(Player machine, int delaySeconds) throws Exception {
-        // Mutable holders used by scheduled task callback.
+        // Contenedores mutables usados por el callback programado.
         final Move[] holder = new Move[1];
         final Exception[] error = new Exception[1];
         final Object lock = new Object();
 
-        // Schedules machine decision after configured delay.
+        // Programa decision de maquina tras la demora configurada.
         machineScheduler.schedule(() -> {
             synchronized (lock) {
                 try {
@@ -360,13 +360,13 @@ public class GameService {
         }, delaySeconds, TimeUnit.SECONDS);
 
         synchronized (lock) {
-            // Waits until either a move is selected or an error occurs.
+            // Espera hasta tener jugada o error.
             while (holder[0] == null && error[0] == null) {
                 lock.wait();
             }
         }
 
-        // Propagates machine-selection errors to caller.
+        // Propaga errores de seleccion de maquina al llamador.
         if (error[0] != null) {
             throw error[0];
         }
@@ -374,7 +374,7 @@ public class GameService {
     }
 
     private Move chooseMachineMove(Player machine) throws InvalidMoveException {
-        // Collects all legal add/subtract moves from current hand.
+        // Recolecta todas las jugadas legales de suma/resta de la mano.
         List<Move> candidates = new ArrayList<>();
         for (Card card : machine.getHand()) {
             Move add = new Move(card, Operation.ADD);
@@ -391,7 +391,7 @@ public class GameService {
             throw new InvalidMoveException("La maquina no tiene jugadas validas");
         }
 
-        // Heuristic 1: prefer highest safe addition.
+        // Heuristica 1: prioriza la suma segura mas alta.
         Optional<Move> bestAdd = candidates.stream()
                 .filter(move -> move.operation() == Operation.ADD)
                 .max(Comparator.comparingInt(move -> GameRules.applyMove(move, tableSum)));
@@ -400,29 +400,29 @@ public class GameService {
             return bestAdd.get();
         }
 
-        // Heuristic 2: fallback to move closest to zero absolute sum.
+        // Heuristica 2: fallback a jugada con suma mas cercana a cero.
         return candidates.stream()
                 .min(Comparator.comparingInt(move -> Math.abs(GameRules.applyMove(move, tableSum))))
                 .orElse(candidates.getFirst());
     }
 
     private void applyMove(Player player, Move move) {
-        // Updates table sum and visible top card pile.
+        // Actualiza suma de mesa y pila visible de cartas.
         tableSum = GameRules.applyMove(move, tableSum);
         tablePile.push(move.card());
-        // Logs move for history panel and status message.
+        // Registra jugada para historial y mensaje de estado.
         history.add(player.getName() + " jugo " + move.card() + " con " + move.operation().getSymbol() + " -> suma=" + tableSum);
         emitMessage(player.getName() + " jugo " + move.card().toShortString() + " " + move.operation().getSymbol());
     }
 
     private void drawCardWithDelay(Player player, int minSeconds, int maxSeconds) throws InterruptedException {
-        // Recycles table pile into deck if deck is exhausted.
+        // Recicla pila de mesa al mazo si el mazo se agota.
         if (deck.isEmpty()) {
             deck.recycle(new ArrayList<>(tablePile));
             tablePile.clear();
         }
 
-        // Applies optional draw delay for machine timing simulation.
+        // Aplica demora opcional para simular tiempos de maquina.
         if (minSeconds > 0 || maxSeconds > 0) {
             int delay = minSeconds;
             if (maxSeconds > minSeconds) {
@@ -431,7 +431,7 @@ public class GameService {
             Thread.sleep(delay * 1000L);
         }
 
-        // Draws one card if deck still has cards.
+        // Toma una carta si aun hay cartas en el mazo.
         if (!deck.isEmpty()) {
             player.addCard(deck.draw());
             history.add(player.getName() + " tomo una carta");
@@ -439,7 +439,7 @@ public class GameService {
     }
 
     private void eliminatePlayer(Player player) {
-        // Marks player inactive and returns remaining hand to deck.
+        // Marca jugador inactivo y devuelve su mano restante al mazo.
         player.eliminate();
         List<Card> recycled = player.extractHand();
         deck.recycle(recycled);
@@ -448,7 +448,7 @@ public class GameService {
     }
 
     private void advanceTurn() {
-        // Moves index circularly to next active player.
+        // Mueve el indice circularmente al siguiente jugador activo.
         int next = (currentPlayerIndex + 1) % players.size();
         int safety = 0;
         while (!players.get(next).isActive() && safety < players.size()) {
@@ -459,35 +459,35 @@ public class GameService {
     }
 
     private void emitState() {
-        // Builds immutable snapshot and notifies all listeners.
+        // Construye snapshot inmutable y notifica listeners.
         GameSnapshot snapshot = buildSnapshot();
         listeners.forEach(listener -> listener.onGameStateChanged(snapshot));
     }
 
     private void emitMessage(String message) {
-        // Broadcasts status/turn messages to subscribed listeners.
+        // Publica mensajes de estado/turno a listeners suscritos.
         listeners.forEach(listener -> listener.onTurnMessage(message));
     }
 
     private synchronized GameSnapshot buildSnapshot() {
-        // Top card shown in UI table area.
+        // Carta superior mostrada en la seccion de mesa.
         String topCard = tablePile.isEmpty() ? "-" : tablePile.peek().toString();
         List<PlayerSnapshot> playerSnapshots = new ArrayList<>();
 
         for (Player player : players) {
             if (player.isHuman()) {
-                // Human cards are visible face-up.
+                // Las cartas humanas se muestran boca arriba.
                 List<String> visible = player.getHand().stream().map(Card::toShortString).toList();
                 playerSnapshots.add(new PlayerSnapshot(player.getName(), true, player.isActive(), visible, 0));
             } else {
-                // Machine cards remain hidden (only count is exposed).
+                // Las cartas de maquina permanecen ocultas (solo cantidad).
                 playerSnapshots.add(new PlayerSnapshot(player.getName(), false, player.isActive(), List.of(), player.handSize()));
             }
         }
 
-        // Name of player whose turn is currently active.
+        // Nombre del jugador con turno activo.
         String currentTurn = players.isEmpty() ? "-" : players.get(currentPlayerIndex).getName();
-        // Returns immutable projection consumed by UI.
+        // Retorna proyeccion inmutable consumida por la UI.
         List<String> tableCards = tablePile.stream().map(Card::toShortString).toList();
         return new GameSnapshot(
             tableSum,

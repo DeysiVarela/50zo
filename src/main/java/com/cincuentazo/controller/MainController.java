@@ -73,58 +73,58 @@ public class MainController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        // Loads options for number of machine players.
+        // Carga opciones para la cantidad de jugadores maquina.
         machineCountCombo.getItems().addAll(1, 2, 3);
-        // Sets default game setup.
+        // Configura valores por defecto de inicio.
         machineCountCombo.setValue(1);
 
-        // Groups radio buttons so only one operation can be selected.
+        // Agrupa los radio buttons para permitir una sola operacion.
         addRadio.setToggleGroup(operationGroup);
         subtractRadio.setToggleGroup(operationGroup);
-        // Default operation for playing is addition.
+        // La operacion por defecto para jugar es suma.
         addRadio.setSelected(true);
 
-        // Binds UI buttons to controller actions.
+        // Enlaza botones de UI con acciones del controlador.
         startButton.setOnAction(new StartGameHandler());
         playButton.setOnAction(this::handlePlayAction);
         drawButton.setOnAction(this::handleDrawAction);
 
-        // Enables keyboard shortcuts on the root container.
+        // Habilita atajos de teclado en el contenedor raiz.
         rootPane.addEventHandler(KeyEvent.KEY_PRESSED, this::handleKeyboardShortcuts);
         rootPane.setFocusTraversable(true);
 
-        // Subscribes UI to game state updates.
+        // Suscribe la UI a actualizaciones del estado del juego.
         gameService.addListener(new UiGameEvents());
-        // Initial message shown before first game.
+        // Mensaje inicial antes de la primera partida.
         updateStatus("Selecciona jugadores maquina e inicia el juego.");
-        // Draw action is enabled only after human plays a card.
+        // Tomar carta se habilita solo despues de que el humano juega.
         drawButton.setDisable(true);
     }
 
     @FXML
     private void handlePlayAction(ActionEvent event) {
-        // Rejects play if no active game exists.
+        // Rechaza jugar si no hay una partida activa.
         if (!gameService.isRunning()) {
             updateStatus("Primero inicia una partida.");
             return;
         }
 
-        // Requires selecting one card from human hand first.
+        // Exige seleccionar primero una carta de la mano humana.
         if (selectedHumanCardIndex < 0) {
             updateStatus("Selecciona una carta antes de jugar.");
             return;
         }
 
-        // Determines whether to add or subtract selected card value.
+        // Determina si se suma o resta el valor de la carta elegida.
         Operation operation = subtractRadio.isSelected() ? Operation.SUBTRACT : Operation.ADD;
 
         try {
-            // Sends selected move to service; service validates game rules.
+            // Envia la jugada al servicio; el servicio valida reglas.
             gameService.submitHumanMove(selectedHumanCardIndex, operation);
-            // Clears selection after submitting valid move.
+            // Limpia la seleccion despues de enviar una jugada valida.
             selectedHumanCardIndex = -1;
         } catch (InvalidMoveException ex) {
-            // Any business-rule violation is presented to the player.
+            // Muestra al jugador cualquier violacion de reglas.
             updateStatus(ex.getMessage());
         }
     }
@@ -137,7 +137,7 @@ public class MainController implements Initializable {
         }
 
         try {
-            // Requests explicit human draw after a valid human play.
+            // Solicita tomar carta explicita tras jugar una carta valida.
             gameService.submitHumanDraw();
         } catch (InvalidMoveException ex) {
             updateStatus(ex.getMessage());
@@ -145,12 +145,12 @@ public class MainController implements Initializable {
     }
 
     private void handleKeyboardShortcuts(KeyEvent keyEvent) {
-        // Keyboard shortcuts are enabled only while a game is running.
+        // Los atajos solo funcionan mientras la partida esta en curso.
         if (!gameService.isRunning()) {
             return;
         }
 
-        // Numeric keys map directly to card positions 1..4.
+        // Las teclas numericas mapean posiciones de carta 1..4.
         if (keyEvent.getCode() == KeyCode.DIGIT1) {
             selectedHumanCardIndex = 0;
             updateStatus("Carta 1 seleccionada");
@@ -170,7 +170,7 @@ public class MainController implements Initializable {
             subtractRadio.setSelected(true);
             updateStatus("Operacion configurada en -");
         } else if (keyEvent.getCode() == KeyCode.ENTER || keyEvent.getCode() == KeyCode.SPACE) {
-            // Enter/Space executes play or draw based on current turn phase.
+            // Enter/Espacio ejecuta jugar o tomar segun la fase del turno.
             if (!drawButton.isDisable()) {
                 handleDrawAction(new ActionEvent());
             } else {
@@ -180,7 +180,7 @@ public class MainController implements Initializable {
     }
 
     private void renderSnapshot(GameSnapshot snapshot) {
-        // Updates table widgets from latest immutable game snapshot.
+        // Actualiza widgets de mesa con el snapshot mas reciente.
         tableSumLabel.setText(String.valueOf(snapshot.tableSum()));
         topCardLabel.setText(snapshot.topCard());
         deckCountLabel.setText(String.valueOf(snapshot.deckSize()));
@@ -189,44 +189,44 @@ public class MainController implements Initializable {
         tablePileList.scrollTo(Math.max(0, tablePileList.getItems().size() - 1));
 
         boolean humanTurn = "Humano".equals(snapshot.currentTurn());
-        // While waiting draw, disable play and enable draw to enforce flow.
+        // Mientras espera toma, deshabilita jugar y habilita tomar.
         playButton.setDisable(!humanTurn || snapshot.waitingHumanDraw());
         drawButton.setDisable(!humanTurn || !snapshot.waitingHumanDraw());
 
-        // Replaces history list and scrolls to most recent action.
+        // Reemplaza historial y desplaza a la accion mas reciente.
         historyList.getItems().setAll(snapshot.history());
         historyList.scrollTo(Math.max(0, historyList.getItems().size() - 1));
 
-        // Rebuilds player areas (machine rows and human hand cards).
+        // Reconstruye zonas de jugadores (maquinas y mano humana).
         renderPlayers(snapshot.players());
     }
 
     private void renderPlayers(List<PlayerSnapshot> players) {
-        // Clears old controls before redrawing current state.
+        // Limpia controles previos antes de redibujar el estado actual.
         machinePlayersBox.getChildren().clear();
         humanCardsBox.getChildren().clear();
 
         for (PlayerSnapshot player : players) {
             if (player.human()) {
-                // Human cards are visible and clickable.
+                // Las cartas humanas se muestran visibles y clickeables.
                 for (int i = 0; i < player.visibleCards().size(); i++) {
                     String cardText = player.visibleCards().get(i);
                     Button cardButton = new Button((i + 1) + ": " + cardText);
                     cardButton.getStyleClass().add("card-button");
                     int index = i;
                     cardButton.setOnMouseClicked(mouseEvent -> {
-                        // Click picks current card index for next move.
+                        // El clic selecciona el indice de carta para la jugada.
                         selectedHumanCardIndex = index;
                         updateStatus("Carta seleccionada " + (index + 1) + " -> " + cardText);
-                        // Visual selection state is refreshed.
+                        // Refresca el estado visual de seleccion.
                         highlightSelectedCard();
                     });
                     humanCardsBox.getChildren().add(cardButton);
                 }
-                // Applies selected-card style after creating buttons.
+                // Aplica estilo de seleccion tras crear botones.
                 highlightSelectedCard();
             } else {
-                // Machine panel shows name and hidden-card placeholders.
+                // Panel de maquina con nombre y cartas ocultas.
                 HBox row = new HBox(8);
                 row.getStyleClass().add("machine-row");
 
@@ -244,7 +244,7 @@ public class MainController implements Initializable {
     }
 
     private void highlightSelectedCard() {
-        // Marks only one card button as selected at any time.
+        // Marca solo una carta como seleccionada a la vez.
         for (int i = 0; i < humanCardsBox.getChildren().size(); i++) {
             Button button = (Button) humanCardsBox.getChildren().get(i);
             if (i == selectedHumanCardIndex) {
@@ -256,27 +256,27 @@ public class MainController implements Initializable {
     }
 
     private void updateStatus(String message) {
-        // Centralized status updates for consistent UX.
+        // Punto centralizado para actualizar estado en pantalla.
         statusLabel.setText(message);
     }
 
     private class StartGameHandler implements EventHandler<ActionEvent> {
         @Override
         public void handle(ActionEvent event) {
-            // Reads selected setup (number of machine opponents).
+            // Lee la configuracion elegida (cantidad de maquinas).
             Integer machineCount = machineCountCombo.getValue();
             if (machineCount == null) {
                 updateStatus("Selecciona primero la cantidad de maquinas.");
                 return;
             }
 
-            // Resets card selection before starting a fresh match.
+            // Reinicia seleccion de carta antes de nueva partida.
             selectedHumanCardIndex = -1;
             try {
-                // Creates and starts a new game session.
+                // Crea e inicia una nueva sesion de juego.
                 gameService.startNewGame(machineCount);
                 drawButton.setDisable(true);
-                // Returns keyboard focus so shortcuts work immediately.
+                // Devuelve foco al root para habilitar atajos de inmediato.
                 rootPane.requestFocus();
             } catch (GameInitializationException ex) {
                 updateStatus("No se pudo iniciar el juego: " + ex.getMessage());
@@ -287,25 +287,25 @@ public class MainController implements Initializable {
     private class UiGameEvents extends GameEventAdapter {
         @Override
         public void onGameStateChanged(GameSnapshot snapshot) {
-            // Ensures UI updates happen on JavaFX Application Thread.
+            // Garantiza que actualizaciones ocurran en hilo de JavaFX.
             Platform.runLater(() -> renderSnapshot(snapshot));
         }
 
         @Override
         public void onTurnMessage(String message) {
-            // Displays real-time turn/system messages from game service.
+            // Muestra mensajes en tiempo real del servicio de juego.
             Platform.runLater(() -> updateStatus(message));
         }
 
         @Override
         public void onGameOver(String winnerName) {
-            // Shows end-of-game winner announcement.
+            // Muestra anuncio de ganador al finalizar el juego.
             Platform.runLater(() -> updateStatus("Juego terminado. Ganador: " + winnerName));
         }
 
         @Override
         public void onError(String message, Throwable throwable) {
-            // Reports runtime errors from game loop to UI status area.
+            // Reporta errores de ejecucion del game loop en la UI.
             Platform.runLater(() -> updateStatus(message + " -> " + throwable.getMessage()));
         }
     }

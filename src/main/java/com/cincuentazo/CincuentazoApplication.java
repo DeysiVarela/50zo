@@ -14,25 +14,25 @@ public class CincuentazoApplication extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
-        // Loads the FXML view and links it to MainController.
+        // Carga la vista FXML y la enlaza con MainController.
         FXMLLoader loader = new FXMLLoader(CincuentazoApplication.class.getResource("/com/cincuentazo/view/main-view.fxml"));
-        // Creates the main window scene with an initial size.
+        // Crea la escena principal con tamano inicial.
         Scene scene = new Scene(loader.load(), 1024, 680);
-        // Applies global stylesheet for visual theme.
+        // Aplica la hoja de estilos global para la interfaz.
         scene.getStylesheets().add(CincuentazoApplication.class.getResource("/com/cincuentazo/style/app.css").toExternalForm());
-        // Window title shown in the operating system frame.
+        // Titulo de ventana mostrado por el sistema operativo.
         stage.setTitle("Cincuentazo");
-        // Prevents shrinking below usable dimensions.
+        // Evita reducir la ventana por debajo de un tamano util.
         stage.setMinWidth(900);
         stage.setMinHeight(600);
-        // Attaches scene graph to the JavaFX stage.
+        // Asocia la escena al Stage de JavaFX.
         stage.setScene(scene);
-        // Renders and displays the window.
+        // Renderiza y muestra la ventana.
         stage.show();
     }
 
     public static void main(String[] args) {
-        // Starts JavaFX runtime and calls start().
+        // Inicia el runtime de JavaFX y ejecuta start().
         launch(args);
     }
 }

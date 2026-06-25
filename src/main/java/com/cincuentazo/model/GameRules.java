@@ -6,38 +6,38 @@ import java.util.List;
  * Rule helpers for Cincuentazo.
  */
 public final class GameRules {
-    // Main game rule: table sum must never exceed this value.
+    // Regla principal: la suma de la mesa nunca debe superar este valor.
     public static final int TABLE_LIMIT = 50;
 
     private GameRules() {
-        // Utility class; no instances allowed.
+        // Clase utilitaria; no se permiten instancias.
     }
 
     public static boolean isMoveValid(Move move, int currentSum) {
-        // Computes resulting sum after applying move.
+        // Calcula la suma resultante al aplicar la jugada.
         int next = applyMove(move, currentSum);
-        // Move is valid only if it does not break the 50-limit rule.
+        // La jugada es valida solo si no rompe el limite de 50.
         return next <= TABLE_LIMIT;
     }
 
     public static int applyMove(Move move, int currentSum) {
-        // Uses rank game value from selected card.
+        // Usa el valor de juego del rango de la carta.
         int value = move.card().getGameValue();
-        // Adds or subtracts according to chosen operation.
+        // Suma o resta segun la operacion elegida.
         return move.operation() == Operation.ADD ? currentSum + value : currentSum - value;
     }
 
     public static boolean hasAnyValidMove(List<Card> cards, int currentSum) {
-        // Tests each card with both operations to see if at least one is legal.
+        // Evalua cada carta con ambas operaciones para hallar una jugada legal.
         for (Card card : cards) {
             Move addMove = new Move(card, Operation.ADD);
             Move subtractMove = new Move(card, Operation.SUBTRACT);
             if (isMoveValid(addMove, currentSum) || isMoveValid(subtractMove, currentSum)) {
-                // Early exit when a playable move is found.
+                // Corta apenas encuentra una jugada posible.
                 return true;
             }
         }
-        // No card in hand can be played without exceeding limit.
+        // No hay cartas jugables sin exceder el limite.
         return false;
     }
 }
