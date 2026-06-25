@@ -1,0 +1,92 @@
+.root {
+    -fx-background-color: linear-gradient(to bottom right, #f8f5ef, #ece7da);
+    -fx-font-family: "Segoe UI";
+}
+
+.top-panel {
+    -fx-background-color: #2f3a48;
+    -fx-text-fill: #f2efe8;
+}
+
+.title {
+    -fx-text-fill: #f6f1e8;
+    -fx-font-size: 30px;
+    -fx-font-weight: 700;
+}
+
+.top-panel .label {
+    -fx-text-fill: #f2efe8;
+}
+
+.meta-label {
+    -fx-font-weight: 700;
+}
+
+.meta-value {
+    -fx-background-color: #f6f1e8;
+    -fx-text-fill: #2f3a48;
+    -fx-padding: 4 8 4 8;
+    -fx-background-radius: 8;
+}
+
+.center-panel {
+    -fx-background-color: transparent;
+}
+
+.panel {
+    -fx-background-color: rgba(255, 255, 255, 0.82);
+    -fx-background-radius: 12;
+    -fx-padding: 12;
+    -fx-border-color: #d2c8b8;
+    -fx-border-radius: 12;
+}
+
+.section-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
+}
+
+.card-button {
+    -fx-pref-width: 88;
+    -fx-pref-height: 56;
+    -fx-background-color: #f4ede1;
+    -fx-border-color: #9a8d77;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+}
+
+.card-button:hover {
+    -fx-background-color: #fbe9bc;
+}
+
+.selected-card {
+    -fx-border-color: #177e89;
+    -fx-border-width: 2;
+    -fx-background-color: #d8f0f2;
+}
+
+.machine-row {
+    -fx-background-color: #f7f1e6;
+    -fx-padding: 8;
+    -fx-background-radius: 8;
+}
+
+.machine-name {
+    -fx-font-weight: 700;
+}
+
+.machine-cards {
+    -fx-text-fill: #5e564a;
+}
+
+.status {
+    -fx-background-color: #eef8ff;
+    -fx-text-fill: #173b54;
+    -fx-padding: 8;
+    -fx-background-radius: 8;
+}
+
+.help {
+    -fx-text-fill: #5a5a5a;
+    -fx-font-size: 11px;
+}
