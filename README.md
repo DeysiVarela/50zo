@@ -58,6 +58,10 @@ mvn test
 ## Notas
 
 - El código está documentado con Javadoc en inglés en clases y métodos clave.
+- Estructuras de datos usadas en la implementación (alineadas al enfoque del repo sugerido):
+  - `Queue<Card>` con `ArrayDeque` para administrar el mazo (FIFO).
+  - `Stack<Card>` para la pila de cartas en mesa (LIFO).
+  - `List`/`ArrayList` para manos, historial y snapshots de GUI.
 - Para exportar Javadoc HTML:
 
 ```bash

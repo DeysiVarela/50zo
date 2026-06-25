@@ -54,6 +54,7 @@
                     <RadioButton fx:id="addRadio" text="+"/>
                     <RadioButton fx:id="subtractRadio" text="-"/>
                     <Button fx:id="playButton" text="Jugar carta seleccionada"/>
+                    <Button fx:id="drawButton" text="Tomar carta"/>
                 </HBox>
 
                 <Label text="Teclado: 1-4 seleccion, +/- operacion, Enter/Espacio jugar" styleClass="help"/>
@@ -61,6 +62,8 @@
             </VBox>
 
             <VBox spacing="10" prefWidth="300" styleClass="panel">
+                <Label text="Pila de mesa" styleClass="section-title"/>
+                <ListView fx:id="tablePileList" prefHeight="160"/>
                 <Label text="Historial" styleClass="section-title"/>
                 <ListView fx:id="historyList" prefHeight="420"/>
             </VBox>

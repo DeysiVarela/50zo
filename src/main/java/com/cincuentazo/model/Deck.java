@@ -6,14 +6,15 @@ import java.security.SecureRandom;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Deque;
 import java.util.List;
+import java.util.Queue;
 
 /**
  * Deck with draw and recycle operations.
  */
 public final class Deck {
-    private final Deque<Card> cards = new ArrayDeque<>();
+    // FIFO queue storage for the deck.
+    private final Queue<Card> cards = new ArrayDeque<>();
     private final SecureRandom random = new SecureRandom();
 
     public Deck() {
@@ -33,7 +34,7 @@ public final class Deck {
     }
 
     public Card draw() {
-        Card card = cards.pollFirst();
+        Card card = cards.poll();
         if (card == null) {
             throw new DeckExhaustedException("Deck has no cards left");
         }
@@ -55,7 +56,7 @@ public final class Deck {
         List<Card> shuffled = new ArrayList<>(discardedCards);
         Collections.shuffle(shuffled, random);
         for (Card card : shuffled) {
-            cards.addLast(card);
+            cards.offer(card);
         }
     }
 }

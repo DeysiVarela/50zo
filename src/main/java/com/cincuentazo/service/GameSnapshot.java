@@ -10,6 +10,8 @@ public record GameSnapshot(
         String topCard,
         int deckSize,
         String currentTurn,
+        List<String> tablePileCards,
+        boolean waitingHumanDraw,
         List<PlayerSnapshot> players,
         List<String> history
 ) {
