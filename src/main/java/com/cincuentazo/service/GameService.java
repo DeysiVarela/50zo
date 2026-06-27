@@ -22,8 +22,6 @@ import java.util.Stack;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Core game service with turn loop and machine delays.
@@ -32,9 +30,7 @@ public class GameService {
     // Listeners de UI/controlador interesados en estado y mensajes.
     private final List<GameEventListener> listeners = new CopyOnWriteArrayList<>();
     // Loop de un solo hilo que ejecuta turnos en orden.
-    private final ExecutorService turnExecutor = Executors.newSingleThreadExecutor();
-    // Scheduler usado para demoras de maquina (pensar/tomar).
-    private final ScheduledExecutorService machineScheduler = Executors.newSingleThreadScheduledExecutor();
+    private ExecutorService turnExecutor;
     // Fuente aleatoria para demoras y decisiones de mezcla.
     private final SecureRandom random = new SecureRandom();
 
@@ -120,6 +116,7 @@ public class GameService {
         waitingHumanDraw = false;
 
         // Envia primer estado a UI e inicia loop de turnos asincrono.
+        ensureExecutors();
         emitState();
         emitMessage("Juego iniciado. Comienza el humano.");
         turnExecutor.submit(this::runGameLoop);
@@ -147,6 +144,11 @@ public class GameService {
             // Construye jugada candidata con carta y operacion.
             Card card = current.getHand().get(cardIndex);
             Move move = new Move(card, operation);
+
+            if (!GameRules.isOperationAllowed(move)) {
+                throw new InvalidMoveException("La operacion no esta permitida para esta carta");
+            }
+
             // Aplica regla principal: la suma de mesa no supera 50.
             if (!GameRules.isMoveValid(move, tableSum)) {
                 throw new InvalidMoveException("Esta jugada excede 50 en la suma de la mesa");
@@ -173,7 +175,7 @@ public class GameService {
                 throw new InvalidMoveException("Solo el humano puede tomar carta en este turno");
             }
             if (!waitingHumanDraw) {
-                throw new InvalidMoveException("Debes jugar una carta antes de tomar otra");
+                throw new InvalidMoveException("Tu turno ya ha finalizado");
             }
             pendingHumanDraw = true;
             moveLock.notifyAll();
@@ -209,9 +211,8 @@ public class GameService {
             pendingHumanDraw = false;
             moveLock.notifyAll();
         }
-        // Solicita apagado de executors del loop y scheduler.
-        turnExecutor.shutdownNow();
-        machineScheduler.shutdownNow();
+        // Solicita apagado de executors del loop.
+        shutdownExecutors();
     }
 
     private void runGameLoop() {
@@ -225,11 +226,13 @@ public class GameService {
                     continue;
                 }
 
-                // Elimina jugador si no tiene jugadas validas.
+                // Elimina jugador si no tiene jugadas validas y resuelve partida.
                 if (!GameRules.hasAnyValidMove(player.getHand(), tableSum)) {
                     eliminatePlayer(player);
+                    emitState();
                     if (!isGameActive()) {
-                        break;
+                        finishGame();
+                        return;
                     }
                     advanceTurn();
                     continue;
@@ -243,21 +246,12 @@ public class GameService {
                     handleMachineTurn(player);
                 }
 
-                // Envia estado actualizado y rota turno.
-                emitState();
+                // Rota turno y luego notifica el estado actualizado al UI.
                 advanceTurn();
+                emitState();
             }
 
-            // Resuelve ganador cuando finaliza el loop.
-            Player winner = players.stream().filter(Player::isActive).findFirst().orElse(null);
-            if (winner != null) {
-                emitMessage("Ganador: " + winner.getName());
-                listeners.forEach(listener -> listener.onGameOver(winner.getName()));
-            } else {
-                emitMessage("El juego termino sin ganador.");
-                listeners.forEach(listener -> listener.onGameOver("Sin ganador"));
-            }
-            running = false;
+            finishGame();
         } catch (Exception ex) {
             // Reporta errores inesperados a listeners de UI.
             running = false;
@@ -269,9 +263,20 @@ public class GameService {
         if (!running) {
             return false;
         }
-        // El juego continua mientras haya mas de un jugador activo.
         long alive = players.stream().filter(Player::isActive).count();
         return alive > 1;
+    }
+
+    private void finishGame() {
+        Player winner = players.stream().filter(Player::isActive).findFirst().orElse(null);
+        if (winner != null) {
+            emitMessage("Ganador: " + winner.getName());
+            listeners.forEach(listener -> listener.onGameOver(winner.getName()));
+        } else {
+            emitMessage("El juego termino sin ganador.");
+            listeners.forEach(listener -> listener.onGameOver("Sin ganador"));
+        }
+        running = false;
     }
 
     private void dealInitialCards(List<Player> allPlayers) {
@@ -305,72 +310,28 @@ public class GameService {
             throw new InvalidMoveException("La carta seleccionada ya no esta disponible");
         }
 
-        // Aplica jugada y luego exige tomar carta para cerrar turno.
+        // Aplica la jugada y toma automáticamente una carta de reemplazo para cerrar el turno.
         applyMove(human, move);
-        waitingHumanDraw = true;
-        emitState();
-        emitMessage("Ahora toma una carta para completar tu turno.");
-
-        synchronized (moveLock) {
-            while (running && !pendingHumanDraw) {
-                moveLock.wait();
-            }
-            if (!running) {
-                return;
-            }
-            pendingHumanDraw = false;
-        }
-
         drawCardWithDelay(human, 0, 0);
         waitingHumanDraw = false;
+        pendingHumanDraw = false;
+        emitState();
+        emitMessage("Tu turno finalizo. Ahora juega la maquina.");
     }
 
     private void handleMachineTurn(Player machine) throws Exception {
         emitMessage(machine.getName() + " esta pensando...");
         // La maquina espera 2..4 segundos antes de decidir.
         int thinkDelay = random.nextInt(3) + 2;
+        Thread.sleep(thinkDelay * 1000L);
 
-        // Elige jugada de forma asincrona tras la demora.
-        Move selectedMove = waitForMachineMove(machine, thinkDelay);
+        Move selectedMove = chooseMachineMove(machine);
         machine.removeCard(selectedMove.card());
         applyMove(machine, selectedMove);
 
         // La maquina espera 1..2 segundos antes de tomar carta.
         int drawDelay = random.nextInt(2) + 1;
         drawCardWithDelay(machine, drawDelay, drawDelay);
-    }
-
-    private Move waitForMachineMove(Player machine, int delaySeconds) throws Exception {
-        // Contenedores mutables usados por el callback programado.
-        final Move[] holder = new Move[1];
-        final Exception[] error = new Exception[1];
-        final Object lock = new Object();
-
-        // Programa decision de maquina tras la demora configurada.
-        machineScheduler.schedule(() -> {
-            synchronized (lock) {
-                try {
-                    holder[0] = chooseMachineMove(machine);
-                } catch (Exception ex) {
-                    error[0] = ex;
-                } finally {
-                    lock.notifyAll();
-                }
-            }
-        }, delaySeconds, TimeUnit.SECONDS);
-
-        synchronized (lock) {
-            // Espera hasta tener jugada o error.
-            while (holder[0] == null && error[0] == null) {
-                lock.wait();
-            }
-        }
-
-        // Propaga errores de seleccion de maquina al llamador.
-        if (error[0] != null) {
-            throw error[0];
-        }
-        return holder[0];
     }
 
     private Move chooseMachineMove(Player machine) throws InvalidMoveException {
@@ -456,6 +417,19 @@ public class GameService {
             safety++;
         }
         currentPlayerIndex = next;
+    }
+
+    private void ensureExecutors() {
+        if (turnExecutor == null || turnExecutor.isShutdown()) {
+            turnExecutor = Executors.newSingleThreadExecutor();
+        }
+    }
+
+    private void shutdownExecutors() {
+        if (turnExecutor != null && !turnExecutor.isShutdown()) {
+            turnExecutor.shutdownNow();
+        }
+        turnExecutor = null;
     }
 
     private void emitState() {

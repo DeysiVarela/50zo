@@ -1,92 +1,269 @@
 .root {
-    -fx-background-color: linear-gradient(to bottom right, #f8f5ef, #ece7da);
+    -fx-background-color: radial-gradient(center 50% 42%, radius 70%, #1f7a3c 0%, #145c2d 45%, #3d1f0f 100%);
     -fx-font-family: "Segoe UI";
 }
 
-.top-panel {
-    -fx-background-color: #2f3a48;
-    -fx-text-fill: #f2efe8;
-}
-
-.title {
-    -fx-text-fill: #f6f1e8;
-    -fx-font-size: 30px;
-    -fx-font-weight: 700;
-}
-
-.top-panel .label {
-    -fx-text-fill: #f2efe8;
-}
-
-.meta-label {
-    -fx-font-weight: 700;
-}
-
-.meta-value {
-    -fx-background-color: #f6f1e8;
-    -fx-text-fill: #2f3a48;
-    -fx-padding: 4 8 4 8;
-    -fx-background-radius: 8;
+.side-panel {
+    -fx-pref-width: 250;
 }
 
 .center-panel {
-    -fx-background-color: transparent;
+    -fx-background-color: rgba(0, 0, 0, 0.12);
+    -fx-background-radius: 24;
+    -fx-border-color: rgba(211, 157, 79, 0.55);
+    -fx-border-radius: 24;
+}
+
+.title-center {
+    -fx-text-fill: #f2cb72;
+    -fx-font-size: 42px;
+    -fx-font-weight: 900;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.7), 8, 0.45, 0, 2);
+    -fx-padding: 0 0 6 0;
+}
+
+#tablePane {
+    -fx-background-color: radial-gradient(center 50% 48%, radius 68%, rgba(26, 110, 53, 0.96) 0%, rgba(16, 66, 33, 0.95) 72%, rgba(11, 41, 21, 0.95) 100%);
+    -fx-background-radius: 180;
+    -fx-border-color: #8f6634;
+    -fx-border-width: 3;
+    -fx-border-radius: 180;
+}
+
+.card-back-fallback {
+    -fx-background-color: linear-gradient(to bottom right, #1a3a6e, #0d1f3c);
+    -fx-background-radius: 8;
+    -fx-border-color: #c9a84c;
+    -fx-border-width: 2;
+    -fx-border-radius: 8;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 8, 0.3, 1, 2);
+}
+
+.discard-pile,
+.deck-pile {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.55), 12, 0.35, 2, 4);
+}
+
+.card-value-chip {
+    -fx-background-color: rgba(8, 26, 14, 0.88);
+    -fx-text-fill: #ffe076;
+    -fx-font-size: 13px;
+    -fx-font-weight: 800;
+    -fx-padding: 2 8 2 8;
+    -fx-background-radius: 10;
+    -fx-translate-y: 8;
+}
+
+.deck-count {
+    -fx-background-color: rgba(8, 26, 14, 0.88);
+    -fx-text-fill: #f4e7c0;
+    -fx-font-size: 14px;
+    -fx-font-weight: 800;
+    -fx-padding: 2 10 2 10;
+    -fx-background-radius: 10;
+    -fx-translate-y: 8;
 }
 
 .panel {
-    -fx-background-color: rgba(255, 255, 255, 0.82);
-    -fx-background-radius: 12;
+    -fx-background-color: linear-gradient(to bottom, rgba(16, 31, 20, 0.9), rgba(9, 20, 13, 0.95));
+    -fx-background-radius: 14;
     -fx-padding: 12;
-    -fx-border-color: #d2c8b8;
-    -fx-border-radius: 12;
+    -fx-border-color: #a3773b;
+    -fx-border-radius: 14;
 }
 
 .section-title {
-    -fx-font-size: 16px;
+    -fx-font-size: 15px;
     -fx-font-weight: 700;
+    -fx-text-fill: #f0d090;
 }
 
-.card-button {
-    -fx-pref-width: 88;
-    -fx-pref-height: 56;
-    -fx-background-color: #f4ede1;
-    -fx-border-color: #9a8d77;
-    -fx-border-radius: 8;
+.card-face {
     -fx-background-radius: 8;
-}
-
-.card-button:hover {
-    -fx-background-color: #fbe9bc;
+    -fx-border-radius: 8;
+    -fx-border-color: transparent;
+    -fx-border-width: 3;
 }
 
 .selected-card {
-    -fx-border-color: #177e89;
-    -fx-border-width: 2;
-    -fx-background-color: #d8f0f2;
+    -fx-border-color: #7dff4a;
+    -fx-effect: dropshadow(gaussian, rgba(125, 255, 74, 0.85), 18, 0.5, 0, 0);
 }
 
-.machine-row {
-    -fx-background-color: #f7f1e6;
-    -fx-padding: 8;
-    -fx-background-radius: 8;
+.card-point-label {
+    -fx-text-fill: #ffe565;
+    -fx-font-size: 13px;
+    -fx-font-weight: 800;
+}
+
+.human-card-slot {
+    -fx-cursor: hand;
+}
+
+.human-card-slot:hover .card-face {
+    -fx-effect: dropshadow(gaussian, rgba(246, 230, 138, 0.6), 12, 0.35, 0, 0);
+}
+
+.machine-panel {
+    -fx-background-color: rgba(8, 31, 44, 0.75);
+    -fx-padding: 8 12 8 12;
+    -fx-background-radius: 10;
+    -fx-border-color: #3b7ea7;
+    -fx-border-radius: 10;
+}
+
+.machine-panel-out {
+    -fx-opacity: 0.45;
 }
 
 .machine-name {
     -fx-font-weight: 700;
-}
-
-.machine-cards {
-    -fx-text-fill: #5e564a;
+    -fx-text-fill: #cbe7ff;
+    -fx-font-size: 13px;
 }
 
 .status {
-    -fx-background-color: #eef8ff;
-    -fx-text-fill: #173b54;
-    -fx-padding: 8;
-    -fx-background-radius: 8;
+    -fx-background-color: linear-gradient(to right, rgba(15, 78, 23, 0.94), rgba(12, 57, 19, 0.94));
+    -fx-text-fill: #d2ff9a;
+    -fx-padding: 10;
+    -fx-background-radius: 10;
+    -fx-border-color: #84c74c;
+    -fx-border-radius: 10;
+    -fx-font-size: 14px;
+    -fx-font-weight: 700;
 }
 
 .help {
-    -fx-text-fill: #5a5a5a;
-    -fx-font-size: 11px;
+    -fx-text-fill: #f0e3b6;
+    -fx-font-size: 12px;
+}
+
+.card-box {
+    -fx-background-color: linear-gradient(to bottom, rgba(12, 20, 28, 0.95), rgba(7, 12, 18, 0.95));
+    -fx-background-radius: 12;
+    -fx-border-color: #95682f;
+    -fx-border-radius: 12;
+    -fx-padding: 10;
+}
+
+.card-title {
+    -fx-text-fill: #efc367;
+    -fx-font-size: 18px;
+    -fx-font-weight: 900;
+}
+
+.subtle {
+    -fx-text-fill: #e7d9b8;
+    -fx-font-size: 13px;
+}
+
+.warning-text {
+    -fx-text-fill: #ffe565;
+    -fx-font-size: 14px;
+    -fx-font-weight: 800;
+}
+
+.sum-box {
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-padding: 10;
+    -fx-alignment: center;
+    -fx-border-width: 2;
+}
+
+.sum-safe {
+    -fx-background-color: linear-gradient(to bottom, rgba(22, 95, 40, 0.95), rgba(14, 58, 26, 0.95));
+    -fx-border-color: #5ecf6a;
+}
+
+.sum-warning {
+    -fx-background-color: linear-gradient(to bottom, rgba(120, 95, 20, 0.95), rgba(80, 60, 10, 0.95));
+    -fx-border-color: #e8c547;
+}
+
+.sum-danger {
+    -fx-background-color: linear-gradient(to bottom, rgba(120, 30, 20, 0.95), rgba(70, 15, 10, 0.95));
+    -fx-border-color: #e85c47;
+}
+
+.table-sum {
+    -fx-text-fill: #ffe076;
+    -fx-font-size: 52px;
+    -fx-font-weight: 900;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.55), 8, 0.45, 0, 1);
+}
+
+.table-limit {
+    -fx-text-fill: #f7f2df;
+    -fx-font-size: 28px;
+    -fx-font-weight: 700;
+}
+
+.history-list {
+    -fx-background-color: rgba(8, 26, 14, 0.85);
+    -fx-background-radius: 8;
+}
+
+.history-list .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #e7d9b8;
+    -fx-font-size: 12px;
+    -fx-padding: 4 6 4 6;
+}
+
+.alive-row {
+    -fx-padding: 2 0 2 0;
+}
+
+.alive-icon {
+    -fx-text-fill: #6dff6d;
+    -fx-font-size: 16px;
+    -fx-font-weight: 900;
+}
+
+.dead-icon {
+    -fx-text-fill: #ff5c5c;
+    -fx-font-size: 16px;
+    -fx-font-weight: 900;
+}
+
+.alive-name {
+    -fx-text-fill: #d2ff9a;
+    -fx-font-size: 14px;
+    -fx-font-weight: 700;
+}
+
+.dead-name {
+    -fx-text-fill: #aaa;
+    -fx-font-size: 14px;
+    -fx-strikethrough: true;
+}
+
+.action-start,
+.action-play,
+.action-draw {
+    -fx-text-fill: #e9f7e2;
+    -fx-font-size: 15px;
+    -fx-font-weight: 800;
+    -fx-background-radius: 10;
+    -fx-padding: 8 14 8 14;
+}
+
+.action-start,
+.action-play {
+    -fx-background-color: linear-gradient(to bottom, #2f9b33, #1f6f25);
+    -fx-border-color: #77cf5d;
+    -fx-border-radius: 10;
+}
+
+.action-draw {
+    -fx-background-color: linear-gradient(to bottom, #2f73ad, #224f79);
+    -fx-border-color: #7ca8d8;
+    -fx-border-radius: 10;
+}
+
+.turn-name {
+    -fx-text-fill: #c9ff78;
+    -fx-font-size: 26px;
+    -fx-font-weight: 900;
 }

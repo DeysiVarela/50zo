@@ -4,7 +4,7 @@ package com.cincuentazo.model;
  * Card ranks and game values.
  */
 public enum Rank {
-    ACE("A", 1),
+    ACE("As", 1),
     TWO("2", 2),
     THREE("3", 3),
     FOUR("4", 4),
@@ -12,7 +12,7 @@ public enum Rank {
     SIX("6", 6),
     SEVEN("7", 7),
     EIGHT("8", 8),
-    NINE("9", 9),
+    NINE("9", 0),
     TEN("10", 10),
     JACK("J", 10),
     QUEEN("Q", 10),

@@ -14,17 +14,36 @@ public final class GameRules {
     }
 
     public static boolean isMoveValid(Move move, int currentSum) {
-        // Calcula la suma resultante al aplicar la jugada.
+        if (!isOperationAllowed(move)) {
+            return false;
+        }
         int next = applyMove(move, currentSum);
-        // La jugada es valida solo si no rompe el limite de 50.
         return next <= TABLE_LIMIT;
     }
 
+    public static boolean isOperationAllowed(Move move) {
+        Rank rank = move.card().getRank();
+        return switch (rank) {
+            case ACE -> move.operation() == Operation.ADD;
+            case JACK, QUEEN, KING -> move.operation() == Operation.SUBTRACT;
+            case NINE -> move.operation() == Operation.ADD;
+            case TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, TEN -> move.operation() == Operation.ADD;
+        };
+    }
+
     public static int applyMove(Move move, int currentSum) {
-        // Usa el valor de juego del rango de la carta.
+        if (move.card().getRank() == Rank.NINE) {
+            return currentSum;
+        }
+        if (move.card().getRank() == Rank.ACE && move.operation() == Operation.ADD) {
+            return currentSum + getAceValue(currentSum);
+        }
         int value = move.card().getGameValue();
-        // Suma o resta segun la operacion elegida.
         return move.operation() == Operation.ADD ? currentSum + value : currentSum - value;
+    }
+
+    private static int getAceValue(int currentSum) {
+        return currentSum + 10 <= TABLE_LIMIT ? 10 : 1;
     }
 
     public static boolean hasAnyValidMove(List<Card> cards, int currentSum) {

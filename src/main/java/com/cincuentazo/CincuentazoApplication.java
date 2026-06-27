@@ -17,7 +17,7 @@ public class CincuentazoApplication extends Application {
         // Carga la vista FXML y la enlaza con MainController.
         FXMLLoader loader = new FXMLLoader(CincuentazoApplication.class.getResource("/com/cincuentazo/view/main-view.fxml"));
         // Crea la escena principal con tamano inicial.
-        Scene scene = new Scene(loader.load(), 1024, 680);
+        Scene scene = new Scene(loader.load(), 1280, 780);
         // Aplica la hoja de estilos global para la interfaz.
         scene.getStylesheets().add(CincuentazoApplication.class.getResource("/com/cincuentazo/style/app.css").toExternalForm());
         // Titulo de ventana mostrado por el sistema operativo.

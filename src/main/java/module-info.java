@@ -3,4 +3,5 @@ module com.cincuentazo {
     requires javafx.fxml;
 
     opens com.cincuentazo.controller to javafx.fxml;
+    exports com.cincuentazo;
 }

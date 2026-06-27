@@ -6,67 +6,123 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.RadioButton?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
 <BorderPane fx:id="rootPane" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.cincuentazo.controller.MainController" styleClass="root">
-    <top>
-        <VBox spacing="10" styleClass="top-panel">
+    <left>
+        <VBox spacing="14" styleClass="side-panel">
             <padding>
-                <Insets top="12" right="12" bottom="12" left="12"/>
+                <Insets top="14" right="10" bottom="14" left="14"/>
             </padding>
-            <Label text="Cincuentazo" styleClass="title"/>
-            <HBox spacing="10">
-                <Label text="Jugadores maquina:"/>
-                <ComboBox fx:id="machineCountCombo" prefWidth="120"/>
-                <Button fx:id="startButton" text="Iniciar juego"/>
-                <Label text="Suma mesa:" styleClass="meta-label"/>
-                <Label fx:id="tableSumLabel" text="0" styleClass="meta-value"/>
-                <Label text="Carta superior:" styleClass="meta-label"/>
-                <Label fx:id="topCardLabel" text="-" styleClass="meta-value"/>
-                <Label text="Mazo:" styleClass="meta-label"/>
-                <Label fx:id="deckCountLabel" text="0" styleClass="meta-value"/>
-                <Label text="Turno:" styleClass="meta-label"/>
-                <Label fx:id="currentTurnLabel" text="-" styleClass="meta-value"/>
-            </HBox>
+
+            <VBox spacing="8" styleClass="card-box">
+                <Label text="NUEVA PARTIDA" styleClass="card-title"/>
+                <Label text="Selecciona cuantos jugadores maquina:" wrapText="true" styleClass="subtle"/>
+                <ComboBox fx:id="machineCountCombo" prefWidth="180"/>
+                <Button fx:id="startButton" text="INICIAR PARTIDA" styleClass="action-start"/>
+            </VBox>
+
+            <VBox spacing="8" styleClass="card-box">
+                <Label text="REGLAS RAPIDAS" styleClass="card-title"/>
+                <Label text="2-8 y 10: suman su valor" styleClass="subtle"/>
+                <Label text="9: no suma ni resta (0)" styleClass="subtle"/>
+                <Label text="J, Q, K: restan 10" styleClass="subtle"/>
+                <Label text="A: +1 o +10" styleClass="subtle"/>
+                <Label text="No puedes superar 50" styleClass="warning-text"/>
+            </VBox>
         </VBox>
-    </top>
+    </left>
 
     <center>
-        <HBox spacing="16" styleClass="center-panel">
+        <VBox spacing="0" styleClass="center-panel">
             <padding>
-                <Insets top="12" right="12" bottom="12" left="12"/>
+                <Insets top="10" right="12" bottom="10" left="12"/>
             </padding>
-            <VBox spacing="10" prefWidth="350" styleClass="panel">
-                <Label text="Jugadores maquina" styleClass="section-title"/>
-                <VBox fx:id="machinePlayersBox" spacing="8"/>
-            </VBox>
 
-            <VBox spacing="10" prefWidth="420" styleClass="panel">
-                <Label text="Mano humana (clic o tecla 1-4)" styleClass="section-title"/>
-                <HBox fx:id="humanCardsBox" spacing="8"/>
+            <Label text="CINCUENTAZO" styleClass="title-center"/>
 
-                <HBox spacing="12">
-                    <Label text="Operacion:"/>
+            <AnchorPane fx:id="tablePane" prefHeight="380" minHeight="320">
+                <!-- Maquina arriba -->
+                <VBox fx:id="machineTopBox" spacing="4" alignment="CENTER"
+                      AnchorPane.topAnchor="8" AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0"/>
+
+                <!-- Maquina izquierda -->
+                <VBox fx:id="machineLeftBox" spacing="4" alignment="CENTER"
+                      AnchorPane.leftAnchor="12" AnchorPane.topAnchor="80"/>
+
+                <!-- Maquina derecha -->
+                <VBox fx:id="machineRightBox" spacing="4" alignment="CENTER"
+                      AnchorPane.rightAnchor="12" AnchorPane.topAnchor="80"/>
+
+                <!-- Area central: carta en mesa + mazo -->
+                <HBox spacing="36" alignment="CENTER"
+                      AnchorPane.topAnchor="100" AnchorPane.bottomAnchor="20"
+                      AnchorPane.leftAnchor="0" AnchorPane.rightAnchor="0">
+                    <StackPane styleClass="discard-pile">
+                        <ImageView fx:id="topCardView" fitWidth="90" fitHeight="130" preserveRatio="true"/>
+                        <Label fx:id="topCardValueLabel" styleClass="card-value-chip" StackPane.alignment="BOTTOM_CENTER"/>
+                    </StackPane>
+
+                    <StackPane styleClass="deck-pile">
+                        <StackPane fx:id="deckBackPane" styleClass="card-back-fallback" prefWidth="90" prefHeight="130"/>
+                        <Label fx:id="deckCountCenterLabel" text="0" styleClass="deck-count" StackPane.alignment="BOTTOM_CENTER"/>
+                    </StackPane>
+                </HBox>
+            </AnchorPane>
+
+            <VBox spacing="10" styleClass="panel panel-human">
+                <Label fx:id="humanTurnHint" text="TU MANO" styleClass="section-title"/>
+                <HBox fx:id="humanCardsBox" spacing="12" alignment="CENTER"/>
+
+                <HBox spacing="10" alignment="CENTER">
+                    <Label text="Operacion:" styleClass="subtle"/>
                     <RadioButton fx:id="addRadio" text="+"/>
                     <RadioButton fx:id="subtractRadio" text="-"/>
-                    <Button fx:id="playButton" text="Jugar carta seleccionada"/>
-                    <Button fx:id="drawButton" text="Tomar carta"/>
+                    <Button fx:id="playButton" text="JUGAR CARTA" styleClass="action-play"/>
+                    <Button fx:id="drawButton" text="TOMAR CARTA" styleClass="action-draw"/>
                 </HBox>
 
-                <Label text="Teclado: 1-4 seleccion, +/- operacion, Enter/Espacio jugar" styleClass="help"/>
+                <Label text="Teclado: 1-4 seleccion, +/- operacion, Enter/Espacio accion" styleClass="help"/>
                 <Label fx:id="statusLabel" text="Estado" wrapText="true" styleClass="status"/>
             </VBox>
-
-            <VBox spacing="10" prefWidth="300" styleClass="panel">
-                <Label text="Pila de mesa" styleClass="section-title"/>
-                <ListView fx:id="tablePileList" prefHeight="160"/>
-                <Label text="Historial" styleClass="section-title"/>
-                <ListView fx:id="historyList" prefHeight="420"/>
-            </VBox>
-        </HBox>
+        </VBox>
     </center>
+
+    <right>
+        <VBox spacing="12" styleClass="side-panel side-right">
+            <padding>
+                <Insets top="14" right="14" bottom="14" left="10"/>
+            </padding>
+
+            <VBox spacing="4" styleClass="sum-box sum-safe" fx:id="sumBox">
+                <Label text="SUMA DE LA MESA" styleClass="card-title"/>
+                <HBox alignment="CENTER" spacing="4">
+                    <Label fx:id="tableSumLabel" text="0" styleClass="table-sum"/>
+                    <Label text="/ 50" styleClass="table-limit"/>
+                </HBox>
+            </VBox>
+
+            <VBox spacing="6" styleClass="card-box">
+                <Label text="TURNO ACTUAL" styleClass="card-title"/>
+                <Label fx:id="currentTurnLabel" text="-" styleClass="turn-name"/>
+            </VBox>
+
+            <VBox spacing="8" styleClass="card-box" VBox.vgrow="ALWAYS">
+                <Label text="HISTORIAL DE JUGADAS" styleClass="card-title"/>
+                <ListView fx:id="historyList" prefHeight="220" VBox.vgrow="ALWAYS" styleClass="history-list"/>
+            </VBox>
+
+            <VBox spacing="8" styleClass="card-box">
+                <Label text="JUGADORES VIVOS" styleClass="card-title"/>
+                <VBox fx:id="alivePlayersBox" spacing="6"/>
+            </VBox>
+        </VBox>
+    </right>
 </BorderPane>

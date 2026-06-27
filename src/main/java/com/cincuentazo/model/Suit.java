@@ -4,10 +4,10 @@ package com.cincuentazo.model;
  * Card suits.
  */
 public enum Suit {
-    HEARTS("Hearts"),
-    DIAMONDS("Diamonds"),
-    CLUBS("Clubs"),
-    SPADES("Spades");
+    HEARTS("Corazones"),
+    DIAMONDS("Diamantes"),
+    CLUBS("Tréboles"),
+    SPADES("Picas");
 
     private final String label;
 

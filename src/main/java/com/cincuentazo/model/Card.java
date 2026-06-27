@@ -32,6 +32,6 @@ public final class Card {
 
     @Override
     public String toString() {
-        return rank.getLabel() + " of " + suit.getLabel();
+        return rank.getLabel() + " de " + suit.getLabel();
     }
 }
